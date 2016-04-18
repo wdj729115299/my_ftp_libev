@@ -18,12 +18,37 @@ fer] [-b:asyncbuffers] [-w:windowsize] [host]\n"
 			"-x");
 }
 
+static void userinput_parser(const char *input, int len, struct command *cmd)
+{
+	char *p = input;
+	char *token;
+	int i;
+	struct command *cmd = (struct command*)malloc(sizeof(struct command));
+	if(!cmd){
+		dprintf("no memory for struct command\n");
+		exit(-2);
+	}
+	memset(cmd, 0, sizeof(struct cmd);
+
+	while((token = strsep(&p, "\t\n")) != NULL){
+		if(cmd->id == 0){
+			for(i = 0; i < NCOMMANDS; i++){
+				if(!strcmp(command[i], token)){
+					cmd->id = i;
+					break;
+				}
+			}
+		}else{
+			append_path(cmd, token);		
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int opt;
 	const char *opt_string = "vnidgs:aAx:r:b:w:";
 	int sd;
-	struct command *command;
 	char userinput[LENUSERINPUT] = {0};
 
 	while((opt = getopt(argc, argv, opt_string)) != EOF){
@@ -64,7 +89,8 @@ int main(int argc, char *argv[])
 	while(1){
 		printf("ftp>");
 		fget(userinput, LENUSERINPUT, stdin)
-		cmd = userinput_parser(userinput);
+		struct command *cmd = malloc(sizeof(struct command));
+		userinput_parser(userinput, LENUSERINPUT, cmd);
 		if(!cmd)
 			continue;
 
