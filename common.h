@@ -49,4 +49,23 @@ enum COMMAND{
 		EXIT
 };
 
+#define	LENBUFFER	504		// so as to make the whole packet well-rounded ( = 512 bytes)
+
+struct packet{
+	short int conid;
+	short int type;
+	short int comid;
+	short int datalen;
+	char buffer[LENBUFFER];
+};
+
+enum message_type{
+	REQUEST,
+	DONE,
+	INFOMATION,
+	TERMINAL, 
+	DATA,
+	EOT
+};
+
 #endif

@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 	const char *opt_string = "vnidgs:aAx:r:b:w:";
 	int sd;
 	char userinput[LENUSERINPUT] = {0};
+	struct packet *data;
 
 	while((opt = getopt(argc, argv, opt_string)) != EOF){
 		case 'v':
@@ -85,6 +86,13 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	*/
+
+	struct packet *chp = (struct packet*)malloc(sizeof(struct packet));
+	if(!chp){
+		dprintf("no memory for chp\n");
+		exit(-2);
+	}
+	memset(chp, 0, sizeof(struct packet));
 	
 	while(1){
 		printf("ftp>");
@@ -95,6 +103,11 @@ int main(int argc, char *argv[])
 			continue;
 
 		switch(cmd->id){
+			case GET:
+				if(cmd->npaths)
+					command_get(chp, sd, *cmd->paths);
+				else fprintf(stderr, "no path to file\n");
+				break;
 		}
 	}
 
