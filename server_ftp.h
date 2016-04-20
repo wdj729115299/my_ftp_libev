@@ -7,6 +7,7 @@ struct ftp_client{
 	ev_io read;
 	ev_io write;
 	void *data;
+	int connection_id;
 };
 
 struct ftp_server{

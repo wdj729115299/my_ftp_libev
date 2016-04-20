@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 		switch(cmd->id){
 			case GET:
 				if(cmd->npaths)
-					command_get(chp, sd, *cmd->paths);
+					client_command_get(chp, sd, *cmd->paths);
 				else fprintf(stderr, "no path to file\n");
 				break;
 		}

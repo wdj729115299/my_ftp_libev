@@ -32,6 +32,41 @@ static const char* command[NCOMMANDS] = {
 	"exit"
 };
 
+void recv_file(int sd, FILE *fp)
+{
+	struct packet data;
+	struct packet *chp;
+	int i = 0, j = 0;
+
+	if(recv(sd, &data, sizeof(struct packet), 0) <= 0){
+		dprintf("error while receiving file\n");
+		return;
+	}
+	j++;
+	chp = ntohs(&data);
+	while(chp->type == DATA){
+		i += fwrite(chp->buffer, sizeof(char), chp->datalen, fp);
+			
+		if(recv(sd, &data, sizeof(struct packet), 0) <= 0){
+			dprintf("error while receiving file\n");
+			return;
+		}
+		j++;
+		chp = ntohs(&data);
+	}
+	fprintf(stdin, "\t%d data packet(s) received.\n", --j);	// j decremented because the last packet is EOT.
+	fprintf(stdin, "\t%d byte(s) written.\n", i);
+
+	if(chp->type == EOT)
+		return;
+	else
+	{
+		fprintf(stderr, "Error occured while downloading remote file.\n");
+		exit(2);
+	}
+	fflush(stderr);
+}
+
 static void append_path(struct command *cmd, char *token)
 {
 	cmd->npaths++;
@@ -53,7 +88,7 @@ static void append_path(struct command *cmd, char *token)
 	cmd->paths = temppaths;
 }
 
-void command_get(struct packet *chp, int sd, char *filename)
+void client_command_get(struct packet *chp, int sd, char *filename)
 {
 	int ret;
 	struct packet *data;
@@ -81,7 +116,7 @@ void command_get(struct packet *chp, int sd, char *filename)
 	chp = ntohs(data);
 	if(chp->type == INFOMATION && chp->comid == GET && strlen(chp->buffer) ){
 		printf("\t%s\n", chp->buffer);
-		recv_file(chp, sd, fp);
+		recv_file(sd, fp);
 	}else{
 		dprintf("Error getting remote file : <%s>\n", filename);
 	}
