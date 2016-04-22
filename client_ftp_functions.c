@@ -1,7 +1,8 @@
 #include "client_ftp.h"
 #include "common.h"
 
-static const char* command[NCOMMANDS] = {
+const char* command_list[NCOMMANDS] = 
+{
 	"open",
 	"get",
 	"put",
@@ -42,8 +43,11 @@ void recv_file(int sd, FILE *fp)
 		dprintf("error while receiving file\n");
 		return;
 	}
+	
 	j++;
-	chp = ntohs(&data);
+	chp = &data;
+	ntoh_packet(chp);
+	
 	while(chp->type == DATA){
 		i += fwrite(chp->buffer, sizeof(char), chp->datalen, fp);
 			
@@ -52,7 +56,8 @@ void recv_file(int sd, FILE *fp)
 			return;
 		}
 		j++;
-		chp = ntohs(&data);
+		chp = &data;
+		ntoh_packet(chp);
 	}
 	fprintf(stdin, "\t%d data packet(s) received.\n", --j);	// j decremented because the last packet is EOT.
 	fprintf(stdin, "\t%d byte(s) written.\n", i);
@@ -67,7 +72,7 @@ void recv_file(int sd, FILE *fp)
 	fflush(stderr);
 }
 
-static void append_path(struct command *cmd, char *token)
+void append_path(struct command *cmd, char *token)
 {
 	cmd->npaths++;
 	char **temppaths = (char **)malloc(cmd->npaths * sizeof(char*));
@@ -103,8 +108,8 @@ void client_command_get(struct packet *chp, int sd, char *filename)
 	chp->conid = -1;
 	chp->comid = GET;
 	strcpy(chp->buffer, filename);
-	data = htonp(chp);
-
+	data = chp;
+	hton_packet(data);
 	if((ret = send(sd, data, sizeof(struct packet), 0)) != sizeof(struct packet)){
 		dprintf("send packet failed\n");
 		return;
@@ -113,7 +118,8 @@ void client_command_get(struct packet *chp, int sd, char *filename)
 		dprintf("recv packet failed\n");
 		return;
 	}
-	chp = ntohs(data);
+	chp = data;
+	ntoh_packet(chp);
 	if(chp->type == INFOMATION && chp->comid == GET && strlen(chp->buffer) ){
 		printf("\t%s\n", chp->buffer);
 		recv_file(sd, fp);

@@ -1,5 +1,12 @@
 #ifndef _COMMON_H
 #define _COMMON_H
+#include <stdio.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <getopt.h>
+#include <netinet/in.h>
+#include <string.h>
 
 #define __DEBUG         1
 
@@ -16,7 +23,7 @@ static int setnonblock(int fd)
 {
 	int flags = fcntl(fd, F_GETFL);
 	if(flags < 0)
-		return falgs;
+		return flags;
 	flags |= O_NONBLOCK;
 	if(fcntl(fd, F_SETFL, flags) < 0)
 		return -1;
@@ -67,5 +74,21 @@ enum message_type{
 	DATA,
 	EOT
 };
+
+static void ntoh_packet(struct packet *hp)
+{
+	hp->comid = ntohs(hp->comid);
+	hp->conid = ntohs(hp->conid);
+	hp->datalen = ntohs(hp->datalen);
+	hp->type = ntohs(hp->type);
+}
+
+static void hton_packet(struct packet *hp)
+{
+	hp->comid = htons(hp->comid);
+	hp->conid = htons(hp->conid);
+	hp->datalen = htons(hp->datalen);
+	hp->type = htons(hp->type);
+}
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef _SERVER_FTP_H
 #define _SERVER_FTP_H
 
+#include <ev.h>
+
 struct ftp_client{
 	int sd;
 	ev_io accept;
