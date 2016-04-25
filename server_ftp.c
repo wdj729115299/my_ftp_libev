@@ -13,17 +13,18 @@ static void write_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 
 static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 {
-	struct ftp_client *ftp_client = (struct client*)((char*)w - offset(struct client, ev_read));
+	struct ftp_client *ftp_client = (struct ftp_client*)((char*)w - offsetof(struct ftp_client, ev_read));
 	struct packet data;
 	struct packet *hp;
 	
 	while(1){
-		if(recv(ftp_client->sd, data, sizeof(struct packet), 0) < 0){
+		if(recv(ftp_client->sd, &data, sizeof(struct packet), 0) < 0){
 			dprintf("error ocuuring,closing connections\n");
 			break;
 		}
 
-		hp = ntohs(&data);
+		hp = &data;
+		ntoh_packet(hp);
 
 		if(hp->type == TERMINAL)
 			break;
@@ -45,12 +46,13 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 
 static void accept_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 {
-	struct ftp_client *accept_loop = (struct ftp_client*)((char*)w - offset(struct client, ev_accept))
+	struct ftp_client *accept_loop = (struct ftp_client*)
+							((char*)w - offsetof(struct ftp_client, ev_accept));
 
 	struct sockaddr_in client_addr;
-	sockaddr_t client_len = sizeof(struct sockaddr_in);
-	int client_sd = accept(w->listen_sd, (struct sockaddr*)&client_addr, &client_len);
-	struct ftp_client *client = malloc(sizeof(struct ftp_client));
+	socklen_t client_len = sizeof(struct sockaddr_in);
+	int client_sd = accept(accept_loop->sd, (struct sockaddr*)&client_addr, &client_len);
+	struct ftp_client *client = (struct ftp_client*)malloc(sizeof(struct ftp_client));
 	if(!client){
 		dprintf("no memory for client.\n");
 		exit(-1);
@@ -65,19 +67,19 @@ static void accept_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 static void ftp_server_loop(struct ftp_server *server)
 {
 	server->loop = ev_default_loop(0);
-	struct client *accept_loop = malloc(sizeof(struct client));
+	struct ftp_client *accept_loop = malloc(sizeof(struct ftp_client));
 	if(!accept_loop){
 		dprintf("no memory for accept_loop.\n");
 		exit(-1);
 	}
 
 	ev_io_init(&accept_loop->ev_accept, accept_cb, server->listen_sd, EV_READ);
-	ev_io_start(server->loop, accept_loop->ev_accept);
+	ev_io_start(server->loop, &accept_loop->ev_accept);
 
 	ev_loop(server->loop, 0);
 }
 
-static void init_server(void)
+static int init_server(void)
 {
 	server.listen_addr.sin_family = AF_INET;
 	server.listen_addr.sin_port = htons(55667);
@@ -99,7 +101,7 @@ static void init_server(void)
 		return -1;
 	}
 
-	if(bind(server.listen_sd, &server.listen_addr, sizeof(server.listen_addr)) < 0){
+	if(bind(server.listen_sd, (struct sockaddr*)&server.listen_addr, sizeof(server.listen_addr)) < 0){
 		dprintf("bind socket failed.\n");
 		return -1;
 	}
@@ -109,16 +111,20 @@ static void init_server(void)
 		return -1;
 	}
 
-	if(setnonblock(server.listen_fd) < 0){
+	if(setnonblock(server.listen_sd) < 0){
 		dprintf("setnonblock failed.\n");
 		return -1;
 	}
 
+	return 0;
+
 }
 
-int main(void){
+void main(void){
 
-	init_server();
+	if(init_server() < 0){
+		return;
+	}
 	
 	return ftp_server_loop(&server);
 }

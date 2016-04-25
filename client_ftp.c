@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	}
 
 	if(optind == argc){
-		dprintf("missing host address");
+		dprintf("missing host address\n");
 		return -1;
 	}
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	}
 
 	if(connect(sd, (struct sockaddr*)&client_addr, sizeof(struct sockaddr_in)) < 0){
-		dprintf("connect to server failed");
+		dprintf("connect to server failed\n");
 		return -1;
 	}
 	

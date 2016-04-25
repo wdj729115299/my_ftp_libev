@@ -2,12 +2,13 @@
 #define _SERVER_FTP_H
 
 #include <ev.h>
+#include "common.h"
 
 struct ftp_client{
 	int sd;
-	ev_io accept;
-	ev_io read;
-	ev_io write;
+	ev_io ev_accept;
+	ev_io ev_read;
+	ev_io ev_write;
 	void *data;
 	int connection_id;
 };

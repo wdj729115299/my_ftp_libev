@@ -19,6 +19,8 @@
 #define dprintf(fmt, arg...)
 #endif
 
+#define offsetof(TYPE, MEMBER) ((size_t)&((TYPE*)0)->MEMBER)
+
 static int setnonblock(int fd)
 {
 	int flags = fcntl(fd, F_GETFL);

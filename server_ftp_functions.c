@@ -1,3 +1,5 @@
+#include "common.h"
+
 void server_send_file(struct packet *hp, int sd, FILE *fp)
 {
 	int i = 0, j = 0;
@@ -7,7 +9,8 @@ void server_send_file(struct packet *hp, int sd, FILE *fp)
 		memset(hp->buffer, '\0', sizeof(char) * LENBUFFER);
 		hp->datalen = fread(hp->buffer, 1, LENBUFFER - 1, fp);
 		i += hp->datalen;
-		data = htons(hp);
+		data = hp;
+		hton_packet(data);
 		if(send(sd, data, sizeof(struct packet), 0) < 0){
 			dprintf("send packet failed\n");
 			return;
@@ -19,6 +22,19 @@ void server_send_file(struct packet *hp, int sd, FILE *fp)
 	fflush(stdin);
 }
 
+void server_send_EOT(struct packet *hp, int sd)
+{
+	int i;
+	struct packet *data;
+	
+	hp->type = EOT;
+	data = hp;
+	hton_packet(data);
+	if(send(sd, hp, sizeof(struct packet), 0) < 0){
+		dprintf("send packet failed\n");
+		return;
+	}
+}
 
 void server_command_get(struct packet *hp, int sd)
 {
@@ -34,7 +50,8 @@ void server_command_get(struct packet *hp, int sd)
 	hp->type = INFOMATION;
 	hp->comid = GET;
 	strcpy(hp->buffer, "file found.processing");
-	data = htons(hp);
+	data = hp;
+	hton_packet(hp);
 
 	if(send(sd, data, sizeof(struct packet), 0) < 0){
 		dprintf("send packet failed\n");
@@ -45,5 +62,5 @@ void server_command_get(struct packet *hp, int sd)
 	server_send_file(hp, sd, fp);
 	fclose(fp);
 
-	server_send_EOT(hp, sd, fp);
+	server_send_EOT(hp, sd);
 }
