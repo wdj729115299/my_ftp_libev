@@ -50,16 +50,21 @@ static void accept_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 							((char*)w - offsetof(struct ftp_client, ev_accept));
 
 	struct sockaddr_in client_addr;
+	int client_sd;
 	socklen_t client_len = sizeof(struct sockaddr_in);
-	int client_sd = accept(accept_loop->sd, (struct sockaddr*)&client_addr, &client_len);
+	
+	 client_sd = accept(accept_loop->sd, (struct sockaddr*)&client_addr, &client_len);
+	 if(client_sd < 0)
+	 	return;
+	 
 	struct ftp_client *client = (struct ftp_client*)malloc(sizeof(struct ftp_client));
 	if(!client){
 		dprintf("no memory for client.\n");
 		exit(-1);
 	}
 	client->connection_id = g_connection_id++;
-
 	client->sd = client_sd;
+	
 	ev_io_init(&client->ev_read, read_cb, client->sd, EV_READ);
 	ev_io_start(loop, &client->ev_read);
 }
