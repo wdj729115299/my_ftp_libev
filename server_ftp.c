@@ -16,12 +16,14 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 	struct ftp_client *ftp_client = (struct ftp_client*)((char*)w - offsetof(struct ftp_client, ev_read));
 	struct packet data;
 	struct packet *hp;
-	
+
+	printf("read_cb\n");
 	while(1){
 		if(recv(ftp_client->sd, &data, sizeof(struct packet), 0) < 0){
 			dprintf("error ocuuring,closing connections\n");
 			break;
 		}
+		printf("server recv data\n");
 
 		hp = &data;
 		ntoh_packet(hp);
@@ -35,6 +37,7 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 		if(hp->type == REQUEST){
 			switch(hp->comid){
 				case GET:
+					printf("server:get\n");
 					server_command_get(&data, ftp_client->sd);
 					break;
 			}
@@ -46,24 +49,19 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 
 static void accept_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 {
-	struct ftp_client *accept_loop = (struct ftp_client*)
+	struct ftp_client *client = (struct ftp_client*)
 							((char*)w - offsetof(struct ftp_client, ev_accept));
 
 	struct sockaddr_in client_addr;
 	int client_sd;
 	socklen_t client_len = sizeof(struct sockaddr_in);
 	
-	 client_sd = accept(accept_loop->sd, (struct sockaddr*)&client_addr, &client_len);
-	 if(client_sd < 0)
+	 client->sd = accept(w->fd, (struct sockaddr*)&client_addr, &client_len);
+	 if(client->sd < 0)
 	 	return;
+	 printf("accept cb\n");
 	 
-	struct ftp_client *client = (struct ftp_client*)malloc(sizeof(struct ftp_client));
-	if(!client){
-		dprintf("no memory for client.\n");
-		exit(-1);
-	}
 	client->connection_id = g_connection_id++;
-	client->sd = client_sd;
 	
 	ev_io_init(&client->ev_read, read_cb, client->sd, EV_READ);
 	ev_io_start(loop, &client->ev_read);

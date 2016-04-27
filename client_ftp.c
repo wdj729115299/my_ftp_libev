@@ -33,7 +33,8 @@ static struct command* userinput_parser(const char *input, int len, struct comma
 	memset(cmd, 0, sizeof(struct command));
 	cmd->id = -1;
 	
-	while((token = strsep(&p, "\t\n")) != NULL){
+	while((token = strsep(&p, " ")) != NULL){
+		printf("%s\n", token);
 		if(cmd->id == -1){
 			for(i = 0; i < NCOMMANDS; i++){
 				if(!strcmp(command_list[i], token)){
