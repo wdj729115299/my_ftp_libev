@@ -34,7 +34,6 @@ static struct command* userinput_parser(const char *input, int len, struct comma
 	cmd->id = -1;
 	
 	while((token = strsep(&p, " ")) != NULL){
-		printf("%s\n", token);
 		if(cmd->id == -1){
 			for(i = 0; i < NCOMMANDS; i++){
 				if(!strcmp(command_list[i], token)){
@@ -126,8 +125,10 @@ int main(int argc, char *argv[])
 		fgets(userinput, LENUSERINPUT, stdin);
 			
 		userinput_parser(userinput, LENUSERINPUT, cmd);
-		if(!cmd)
+		if(!cmd){
+			dprintf("command error\n");
 			continue;
+		}
 
 		switch(cmd->id){
 			case GET:

@@ -95,8 +95,11 @@ void append_path(struct command *cmd, char *token)
 
 void client_command_get(struct packet *chp, int sd, char *filename)
 {
+	printf("client_command_get\n");
 	int ret;
 	struct packet *data;
+
+	printf("filename %s\n", filename);
 	
 	FILE *fp = fopen(filename, "wb");
 	if(!fp){

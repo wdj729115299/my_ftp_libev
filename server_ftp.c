@@ -23,7 +23,6 @@ static void read_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 			dprintf("error ocuuring,closing connections\n");
 			break;
 		}
-		printf("server recv data\n");
 
 		hp = &data;
 		ntoh_packet(hp);
