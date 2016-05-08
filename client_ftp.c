@@ -19,13 +19,13 @@ static void usage(void)
 			"-x");
 }
 
-static struct command* userinput_parser(const char *input, int len, struct command *cmd)
+static struct command* userinput_parser(const char *input, int len)
 {
 	char *p = input;
 	char *token;
 	int i;
 
-	cmd = (struct command*)malloc(sizeof(struct command));
+	struct command *cmd = (struct command*)malloc(sizeof(struct command));
 	if(!cmd){
 		dprintf("no memory for command");
 		return NULL;
@@ -124,9 +124,8 @@ int main(int argc, char *argv[])
 		printf("ftp>");
 		fgets(userinput, LENUSERINPUT, stdin);
 			
-		userinput_parser(userinput, LENUSERINPUT, cmd);
+		cmd = userinput_parser(userinput, LENUSERINPUT);
 		if(!cmd){
-			dprintf("command error\n");
 			continue;
 		}
 

@@ -93,4 +93,14 @@ static void hton_packet(struct packet *hp)
 	hp->type = htons(hp->type);
 }
 
+static void print_pkt(unsigned char *pkt, int len)
+{
+	int i;
+	for(i = 0; i < len; i++){
+		if(i % 16 == 0 && i != 0)
+			printf("\n");
+		printf("%02x ", pkt[i]);
+	}
+}
+
 #endif

@@ -95,11 +95,8 @@ void append_path(struct command *cmd, char *token)
 
 void client_command_get(struct packet *chp, int sd, char *filename)
 {
-	printf("client_command_get\n");
 	int ret;
 	struct packet *data;
-
-	printf("filename %s\n", filename);
 	
 	FILE *fp = fopen(filename, "wb");
 	if(!fp){
@@ -117,6 +114,7 @@ void client_command_get(struct packet *chp, int sd, char *filename)
 		dprintf("send packet failed\n");
 		return;
 	}
+	print_pkt((unsigned char*)data, sizeof(struct packet));
 	if((ret = recv(sd, data, sizeof(struct packet), 0)) <= 0){
 		dprintf("recv packet failed\n");
 		return;
